@@ -1,0 +1,187 @@
+MODELO LOGICO - SISTEMA CLINICACARE
+
+Este documento descreve a estrutura logica do banco de dados ClinicaCare,
+incluindo tabelas, atributos, tipos de dados, chaves primarias (PK),
+chaves estrangeiras (FK) e relacionamentos.
+
+============================================================
+1. TABELA PLANO
+============================================================
+id_plano (PK)                    INT
+nome_plano                       VARCHAR(100) NOT NULL
+tipo_plano                       VARCHAR(50) NOT NULL
+cobertura                        VARCHAR(150)
+coparticipacao                   DECIMAL(10,2)
+carencia_dias                    INT
+status_plano                     VARCHAR(20)
+data_cadastro                    DATE
+
+============================================================
+2. TABELA PACIENTE
+============================================================
+id_paciente (PK)                 INT
+id_plano (FK)                    INT
+nome_completo                    VARCHAR(100) NOT NULL
+CPF                              VARCHAR(14) NOT NULL UNIQUE
+data_nascimento                  DATE NOT NULL
+genero                           VARCHAR(20)
+endereco                         VARCHAR(150)
+cidade                           VARCHAR(50)
+estado                           VARCHAR(2)
+telefone                         VARCHAR(20)
+email                            VARCHAR(100) UNIQUE
+data_cadastro                    DATE NOT NULL
+
+Chave estrangeira:
+- id_plano referencia PLANO(id_plano).
+
+============================================================
+3. TABELA MEDICO
+============================================================
+id_medico (PK)                   INT
+nome_completo                    VARCHAR(100) NOT NULL
+crm                              VARCHAR(20) NOT NULL UNIQUE
+cpf                              VARCHAR(14) UNIQUE
+telefone                         VARCHAR(20)
+email                            VARCHAR(100) UNIQUE
+data_nascimento                  DATE
+genero                           VARCHAR(20)
+status_ativo                     VARCHAR(20) NOT NULL
+data_contratacao                 DATE
+
+============================================================
+4. TABELA ESPECIALIDADE
+============================================================
+id_especialidade (PK)            INT
+Codigo_especialidade             VARCHAR(20) NOT NULL UNIQUE
+nome_especialidade               VARCHAR(100) NOT NULL
+valor_base_consulta              DECIMAL(10,2)
+valor_particular                 DECIMAL(10,2)
+valor_convenio                   DECIMAL(10,2)
+data_cadastro                    DATE NOT NULL
+status_especialidade             VARCHAR(20) NOT NULL
+
+============================================================
+5. TABELA DISPONIBILIDADE
+============================================================
+id_disponibilidade (PK)          INT
+id_medico (FK)                   INT NOT NULL
+dia_semana                       VARCHAR(20) NOT NULL
+hora_inicio                      TIME NOT NULL
+hora_fim                         TIME NOT NULL
+turno_atendimento                VARCHAR(20)
+sala_atendimento                 VARCHAR(30)
+tipo_atendimento                 VARCHAR(30)
+status_disponibilidade           VARCHAR(20) NOT NULL
+
+Chave estrangeira:
+- id_medico referencia MEDICO(id_medico).
+
+============================================================
+6. TABELA CONSULTA
+============================================================
+id_consulta (PK)                 INT
+id_paciente (FK)                 INT NOT NULL
+id_medico (FK)                   INT NOT NULL
+id_especialidade (FK)            INT NOT NULL
+data_consulta                    DATE NOT NULL
+hora_consulta                    TIME NOT NULL
+status_consulta                  VARCHAR(20) NOT NULL
+valor_consulta                   DECIMAL(10,2) NOT NULL
+modalidade_atendimento           VARCHAR(30)
+observacoes                      VARCHAR(255)
+data_agendamento                 DATE NOT NULL
+
+Chaves estrangeiras:
+- id_paciente referencia PACIENTE(id_paciente).
+- id_medico referencia MEDICO(id_medico).
+- id_especialidade referencia ESPECIALIDADE(id_especialidade).
+
+============================================================
+7. TABELA MEDICO_ESPECIALIDADE
+============================================================
+id_medico_especialidade (PK)     INT
+id_medico (FK)                   INT NOT NULL
+id_especialidade (FK)            INT NOT NULL
+registro_especialidade           VARCHAR(30)
+especialidade_principal          VARCHAR(10)
+
+Chaves estrangeiras:
+- id_medico referencia MEDICO(id_medico).
+- id_especialidade referencia ESPECIALIDADE(id_especialidade).
+
+Esta tabela resolve o relacionamento muitos-para-muitos entre MEDICO e
+ESPECIALIDADE.
+
+============================================================
+8. TABELA PRONTUARIO
+============================================================
+id_prontuario (PK)               INT
+id_consulta (FK)                 INT NOT NULL
+diagnostico                      VARCHAR(255) NOT NULL
+queixa_principal                 VARCHAR(255)
+historico_clinico                TEXT
+conduta_medica                   TEXT
+alergias                         VARCHAR(255)
+observacoes                      TEXT
+data_registro                    DATE NOT NULL
+
+Chave estrangeira:
+- id_consulta referencia CONSULTA(id_consulta).
+
+============================================================
+9. TABELA PRESCRICAO
+============================================================
+id_prescricao (PK)               INT
+id_prontuario (FK)               INT NOT NULL
+id_medico (FK)                   INT NOT NULL
+medicamento                      VARCHAR(100) NOT NULL
+dosagem                          VARCHAR(50) NOT NULL
+frequencia                       VARCHAR(50)
+duracao_tratamento               VARCHAR(50)
+via_administracao                VARCHAR(50)
+orientacoes                      TEXT
+data_prescricao                  DATE NOT NULL
+
+Chaves estrangeiras:
+- id_prontuario referencia PRONTUARIO(id_prontuario).
+- id_medico referencia MEDICO(id_medico).
+
+============================================================
+10. TABELA PAGAMENTO
+============================================================
+id_pagamento (PK)                INT
+id_consulta (FK)                 INT NOT NULL
+id_plano (FK)                    INT
+valor_total                      DECIMAL(10,2) NOT NULL
+valor_coberto_plano              DECIMAL(10,2)
+valor_pago_paciente              DECIMAL(10,2) NOT NULL
+data_pagamento                   DATE
+metodo_pagamento                 VARCHAR(30)
+status_pagamento                 VARCHAR(20) NOT NULL
+numero_recibo                    VARCHAR(30) UNIQUE
+
+Chaves estrangeiras:
+- id_consulta referencia CONSULTA(id_consulta).
+- id_plano referencia PLANO(id_plano).
+
+============================================================
+RELACIONAMENTOS
+============================================================
+- PLANO 1:N PACIENTE.
+- PLANO 1:N PAGAMENTO.
+- PACIENTE 1:N CONSULTA.
+- MEDICO 1:N CONSULTA.
+- MEDICO 1:N DISPONIBILIDADE.
+- MEDICO 1:N PRESCRICAO.
+- MEDICO N:N ESPECIALIDADE, por meio da tabela MEDICO_ESPECIALIDADE.
+- ESPECIALIDADE 1:N CONSULTA.
+- CONSULTA 1:1 PRONTUARIO.
+- CONSULTA 1:1 PAGAMENTO.
+- PRONTUARIO 1:N PRESCRICAO.
+
+Legenda:
+PK = Chave primaria.
+FK = Chave estrangeira.
+NOT NULL = Campo obrigatorio.
+UNIQUE = Valor unico, sem duplicidade.
